@@ -1,0 +1,7 @@
+{
+  "liveServer.settings.root": "/build",
+  "liveServer.settings.port": 3006,
+  "liveServer.settings.CustomBrowser": "chrome",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.donotVerifyTags": true
+}

@@ -2,17 +2,1133 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Personal Task Management Application"
-    />
+    <meta name="description" content="Personal Task Management Application" />
     <title>Task Manager</title>
+    
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- UUID library -->
+    <script src="https://unpkg.com/uuid@9.0.0/dist/umd/uuid.min.js"></script>
+    
+    <style>
+      /* Global Variables */
+      :root {
+        --primary-color: #007bff;
+        --primary-hover: #0056b3;
+        --success-color: #28a745;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --info-color: #17a2b8;
+        
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f9fa;
+        --bg-tertiary: #e9ecef;
+        --text-primary: #212529;
+        --text-secondary: #6c757d;
+        --text-muted: #adb5bd;
+        
+        --border-color: #dee2e6;
+        --border-radius: 8px;
+        --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        --box-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+        
+        --transition: all 0.3s ease;
+        --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      }
+
+      /* Dark Mode Variables */
+      .dark {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --bg-tertiary: #404040;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+        --text-muted: #808080;
+        --border-color: #404040;
+        --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        --box-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Global Styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-family);
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        transition: var(--transition);
+      }
+
+      .app {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Header Styles */
+      .app-header {
+        background-color: var(--bg-primary);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: var(--box-shadow);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .app-header h1 {
+        color: var(--primary-color);
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .theme-toggle {
+        background: none;
+        border: 2px solid var(--border-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: var(--transition);
+      }
+
+      .theme-toggle:hover {
+        border-color: var(--primary-color);
+        transform: scale(1.1);
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--text-secondary);
+      }
+
+      .logout-btn {
+        background-color: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: var(--transition);
+      }
+
+      .logout-btn:hover {
+        background-color: #c82333;
+        transform: translateY(-1px);
+      }
+
+      /* Main Content */
+      .app-main {
+        flex: 1;
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      /* Login Styles */
+      .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 2rem;
+      }
+
+      .login-card {
+        background-color: var(--bg-primary);
+        border-radius: 12px;
+        padding: 3rem;
+        box-shadow: var(--box-shadow-lg);
+        max-width: 450px;
+        width: 100%;
+        text-align: center;
+        border: 1px solid var(--border-color);
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      .login-card h2 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .login-card > p {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+      }
+
+      .login-form {
+        margin-bottom: 2rem;
+      }
+
+      .input-group {
+        margin-bottom: 1.5rem;
+        text-align: left;
+      }
+
+      .login-input {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 1.1rem;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: var(--transition);
+      }
+
+      .login-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+
+      .login-btn {
+        width: 100%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--border-radius);
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--box-shadow-lg);
+      }
+
+      .error-message {
+        color: var(--danger-color);
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      /* Task Manager Styles */
+      .task-manager {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0;
+      }
+
+      .task-manager-header {
+        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .stats {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .stat-item {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        min-width: 120px;
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+      }
+
+      .stat-item:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--box-shadow-lg);
+      }
+
+      .stat-number {
+        display: block;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        display: block;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+      }
+
+      /* Form Styles */
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+
+      input, textarea, select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: var(--transition);
+      }
+
+      input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+
+      input.error, textarea.error, select.error {
+        border-color: var(--danger-color);
+      }
+
+      .error-text {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+      }
+
+      /* Button Styles */
+      .btn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+      }
+
+      .btn:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--box-shadow-lg);
+      }
+
+      .card {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+        margin-bottom: 1rem;
+      }
+
+      .card:hover {
+        box-shadow: var(--box-shadow-lg);
+      }
+
+      /* Animation Classes */
+      .fade-in {
+        animation: fadeIn 0.3s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .app-header {
+          padding: 1rem;
+          flex-direction: column;
+          gap: 1rem;
+        }
+        
+        .app-header h1 {
+          font-size: 1.5rem;
+        }
+        
+        .header-controls {
+          width: 100%;
+          justify-content: space-between;
+        }
+        
+        .user-info {
+          flex-direction: column;
+          gap: 0.5rem;
+          text-align: center;
+        }
+        
+        .app-main {
+          padding: 1rem;
+        }
+
+        .stats {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .stat-item {
+          width: 100%;
+          max-width: 200px;
+        }
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    
+    <script type="text/babel">
+      const { useState, useEffect, useCallback } = React;
+      
+      // Login Component
+      const Login = ({ onLogin }) => {
+        const [username, setUsername] = useState('');
+        const [error, setError] = useState('');
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          
+          if (username.trim().length < 2) {
+            setError('Username must be at least 2 characters long');
+            return;
+          }
+          
+          setError('');
+          onLogin(username.trim());
+        };
+
+        return (
+          <div className="login-container">
+            <div className="login-card">
+              <h2>Welcome to Task Manager</h2>
+              <p>Enter your username to get started</p>
+              
+              <form onSubmit={handleSubmit} className="login-form">
+                <div className="input-group">
+                  <input
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="login-input"
+                    autoFocus
+                  />
+                </div>
+                
+                {error && <div className="error-message">{error}</div>}
+                
+                <button type="submit" className="login-btn">
+                  Start Managing Tasks
+                </button>
+              </form>
+              
+              <div className="login-info">
+                <p>✨ Features included:</p>
+                <ul style={{textAlign: 'left', marginTop: '1rem'}}>
+                  <li>Add, edit, and delete tasks</li>
+                  <li>Set priority levels</li>
+                  <li>Filter and search tasks</li>
+                  <li>Dark mode support</li>
+                  <li>Data persistence</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // Task Form Component
+      const TaskForm = ({ onSubmit, editingTask, onCancel }) => {
+        const [title, setTitle] = useState('');
+        const [description, setDescription] = useState('');
+        const [priority, setPriority] = useState('medium');
+        const [errors, setErrors] = useState({});
+
+        useEffect(() => {
+          if (editingTask) {
+            setTitle(editingTask.title);
+            setDescription(editingTask.description || '');
+            setPriority(editingTask.priority);
+          } else {
+            setTitle('');
+            setDescription('');
+            setPriority('medium');
+          }
+          setErrors({});
+        }, [editingTask]);
+
+        const validateForm = () => {
+          const newErrors = {};
+          
+          if (!title.trim()) {
+            newErrors.title = 'Task title is required';
+          } else if (title.trim().length < 3) {
+            newErrors.title = 'Task title must be at least 3 characters';
+          }
+          
+          setErrors(newErrors);
+          return Object.keys(newErrors).length === 0;
+        };
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          
+          if (!validateForm()) {
+            return;
+          }
+          
+          onSubmit({
+            title: title.trim(),
+            description: description.trim(),
+            priority
+          });
+          
+          if (!editingTask) {
+            setTitle('');
+            setDescription('');
+            setPriority('medium');
+          }
+          
+          setErrors({});
+        };
+
+        const handleCancel = () => {
+          setTitle('');
+          setDescription('');
+          setPriority('medium');
+          setErrors({});
+          onCancel();
+        };
+
+        const getPriorityIcon = (priorityLevel) => {
+          switch (priorityLevel) {
+            case 'high': return '🔴';
+            case 'medium': return '🟡';
+            case 'low': return '🟢';
+            default: return '🟡';
+          }
+        };
+
+        return (
+          <div className="card">
+            <form onSubmit={handleSubmit}>
+              <h3>{editingTask ? 'Edit Task' : 'Add New Task'}</h3>
+              
+              <div className="form-group">
+                <label htmlFor="title">Task Title *</label>
+                <input
+                  type="text"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter task title..."
+                  className={errors.title ? 'error' : ''}
+                  maxLength={100}
+                />
+                {errors.title && <span className="error-text">{errors.title}</span>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter task description (optional)..."
+                  rows={3}
+                  maxLength={500}
+                />
+                <small style={{color: 'var(--text-muted)'}}>
+                  {description.length}/500 characters
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="priority">Priority Level</label>
+                <select
+                  id="priority"
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                >
+                  <option value="low">{getPriorityIcon('low')} Low Priority</option>
+                  <option value="medium">{getPriorityIcon('medium')} Medium Priority</option>
+                  <option value="high">{getPriorityIcon('high')} High Priority</option>
+                </select>
+              </div>
+
+              <div style={{display: 'flex', gap: '1rem'}}>
+                <button type="submit" className="btn">
+                  {editingTask ? 'Update Task' : 'Add Task'}
+                </button>
+                {editingTask && (
+                  <button type="button" onClick={handleCancel} className="btn" style={{backgroundColor: 'var(--text-muted)'}}>
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        );
+      };
+
+      // Task Item Component
+      const TaskItem = ({ task, onToggle, onDelete, onEdit }) => {
+        const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+        const getPriorityIcon = (priority) => {
+          switch (priority) {
+            case 'high': return '🔴';
+            case 'medium': return '🟡';
+            case 'low': return '🟢';
+            default: return '🟡';
+          }
+        };
+
+        const formatDate = (dateString) => {
+          const date = new Date(dateString);
+          const now = new Date();
+          const diffTime = Math.abs(now - date);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays === 1) {
+            return 'Today';
+          } else if (diffDays === 2) {
+            return 'Yesterday';
+          } else if (diffDays <= 7) {
+            return `${diffDays - 1} days ago`;
+          } else {
+            return date.toLocaleDateString();
+          }
+        };
+
+        const handleDelete = () => {
+          if (showDeleteConfirm) {
+            onDelete(task.id);
+            setShowDeleteConfirm(false);
+          } else {
+            setShowDeleteConfirm(true);
+            setTimeout(() => setShowDeleteConfirm(false), 3000);
+          }
+        };
+
+        return (
+          <div className="card" style={{opacity: task.completed ? 0.7 : 1}}>
+            <div style={{display: 'flex', alignItems: 'flex-start', gap: '1rem'}}>
+              <input
+                type="checkbox"
+                checked={task.completed}
+                onChange={() => onToggle(task.id)}
+                style={{marginTop: '0.25rem'}}
+              />
+              
+              <div style={{flex: 1}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem'}}>
+                  <h4 style={{
+                    textDecoration: task.completed ? 'line-through' : 'none',
+                    margin: 0,
+                    flex: 1
+                  }}>
+                    {task.title}
+                  </h4>
+                  <span title={`${task.priority} priority`}>
+                    {getPriorityIcon(task.priority)}
+                  </span>
+                </div>
+                
+                {task.description && (
+                  <p style={{
+                    color: 'var(--text-secondary)',
+                    margin: '0 0 0.5rem 0',
+                    textDecoration: task.completed ? 'line-through' : 'none'
+                  }}>
+                    {task.description}
+                  </p>
+                )}
+                
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <small style={{color: 'var(--text-muted)'}}>
+                    {formatDate(task.createdAt)}
+                  </small>
+                  
+                  <div style={{display: 'flex', gap: '0.5rem'}}>
+                    <button
+                      onClick={() => onEdit(task)}
+                      disabled={task.completed}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: task.completed ? 'not-allowed' : 'pointer',
+                        fontSize: '1.1rem',
+                        opacity: task.completed ? 0.5 : 1
+                      }}
+                      title="Edit task"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '1.1rem',
+                        opacity: showDeleteConfirm ? 0.7 : 1
+                      }}
+                      title={showDeleteConfirm ? 'Click again to confirm deletion' : 'Delete task'}
+                    >
+                      {showDeleteConfirm ? '⚠️' : '🗑️'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {showDeleteConfirm && (
+              <div style={{
+                marginTop: '0.5rem',
+                padding: '0.5rem',
+                backgroundColor: 'var(--bg-tertiary)',
+                borderRadius: 'var(--border-radius)',
+                fontSize: '0.875rem',
+                color: 'var(--danger-color)'
+              }}>
+                Click delete again to confirm
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      // Task List Component
+      const TaskList = ({ tasks, onToggle, onDelete, onEdit }) => {
+        if (tasks.length === 0) {
+          return null;
+        }
+
+        return (
+          <div>
+            <h3 style={{marginBottom: '1rem'}}>Tasks ({tasks.length})</h3>
+            <div>
+              {tasks.map(task => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggle={onToggle}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      // Task Filters Component
+      const TaskFilters = ({ 
+        filter, 
+        onFilterChange, 
+        searchTerm, 
+        onSearchChange, 
+        onClearCompleted, 
+        hasCompletedTasks 
+      }) => {
+        const filters = [
+          { key: 'all', label: 'All Tasks', icon: '📋' },
+          { key: 'active', label: 'Active', icon: '⏳' },
+          { key: 'completed', label: 'Completed', icon: '✅' }
+        ];
+
+        return (
+          <div className="card">
+            <div style={{marginBottom: '1rem'}}>
+              <div style={{position: 'relative'}}>
+                <input
+                  type="text"
+                  placeholder="🔍 Search tasks..."
+                  value={searchTerm}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  style={{paddingLeft: '2.5rem'}}
+                />
+                {searchTerm && (
+                  <button 
+                    onClick={() => onSearchChange('')}
+                    style={{
+                      position: 'absolute',
+                      right: '0.75rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '1.2rem'
+                    }}
+                    title="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem'}}>
+              {filters.map(filterOption => (
+                <button
+                  key={filterOption.key}
+                  onClick={() => onFilterChange(filterOption.key)}
+                  className="btn"
+                  style={{
+                    backgroundColor: filter === filterOption.key ? 'var(--primary-color)' : 'var(--bg-tertiary)',
+                    color: filter === filterOption.key ? 'white' : 'var(--text-primary)',
+                    fontSize: '0.9rem',
+                    padding: '0.5rem 1rem'
+                  }}
+                >
+                  <span>{filterOption.icon}</span>
+                  <span>{filterOption.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {hasCompletedTasks && (
+              <button
+                onClick={onClearCompleted}
+                className="btn"
+                style={{
+                  backgroundColor: 'var(--warning-color)',
+                  color: '#212529',
+                  fontSize: '0.9rem'
+                }}
+                title="Remove all completed tasks"
+              >
+                🧹 Clear Completed
+              </button>
+            )}
+
+            {searchTerm && (
+              <div style={{marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)'}}>
+                Searching for: <strong>"{searchTerm}"</strong>
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      // Main Task Manager Component
+      const TaskManager = ({ user }) => {
+        const [tasks, setTasks] = useState([]);
+        const [filter, setFilter] = useState('all');
+        const [searchTerm, setSearchTerm] = useState('');
+        const [editingTask, setEditingTask] = useState(null);
+
+        // Load tasks from localStorage on component mount
+        useEffect(() => {
+          const savedTasks = localStorage.getItem(`tasks_${user}`);
+          if (savedTasks) {
+            setTasks(JSON.parse(savedTasks));
+          }
+        }, [user]);
+
+        // Save tasks to localStorage whenever tasks change
+        useEffect(() => {
+          localStorage.setItem(`tasks_${user}`, JSON.stringify(tasks));
+        }, [tasks, user]);
+
+        const addTask = (taskData) => {
+          const newTask = {
+            id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+            ...taskData,
+            completed: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          setTasks(prev => [newTask, ...prev]);
+        };
+
+        const updateTask = (taskId, updates) => {
+          setTasks(prev => prev.map(task => 
+            task.id === taskId 
+              ? { ...task, ...updates, updatedAt: new Date().toISOString() }
+              : task
+          ));
+          setEditingTask(null);
+        };
+
+        const deleteTask = (taskId) => {
+          setTasks(prev => prev.filter(task => task.id !== taskId));
+        };
+
+        const toggleTask = (taskId) => {
+          setTasks(prev => prev.map(task => 
+            task.id === taskId 
+              ? { ...task, completed: !task.completed, updatedAt: new Date().toISOString() }
+              : task
+          ));
+        };
+
+        const clearCompleted = () => {
+          setTasks(prev => prev.filter(task => !task.completed));
+        };
+
+        // Filter and search tasks
+        const filteredTasks = tasks.filter(task => {
+          // Apply status filter
+          if (filter === 'active' && task.completed) return false;
+          if (filter === 'completed' && !task.completed) return false;
+          
+          // Apply search filter
+          if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            return (
+              task.title.toLowerCase().includes(searchLower) ||
+              task.description.toLowerCase().includes(searchLower)
+            );
+          }
+          
+          return true;
+        });
+
+        // Sort tasks by priority and creation date
+        const sortedTasks = filteredTasks.sort((a, b) => {
+          // Priority order: high -> medium -> low
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+          
+          if (priorityDiff !== 0) return priorityDiff;
+          
+          // If same priority, sort by creation date (newest first)
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
+        const taskStats = {
+          total: tasks.length,
+          completed: tasks.filter(t => t.completed).length,
+          active: tasks.filter(t => !t.completed).length
+        };
+
+        return (
+          <div className="task-manager">
+            <div className="task-manager-header">
+              <div className="stats">
+                <div className="stat-item">
+                  <span className="stat-number">{taskStats.total}</span>
+                  <span className="stat-label">Total</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-number">{taskStats.active}</span>
+                  <span className="stat-label">Active</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-number">{taskStats.completed}</span>
+                  <span className="stat-label">Completed</span>
+                </div>
+              </div>
+            </div>
+
+            <TaskForm 
+              onSubmit={editingTask ? (data) => updateTask(editingTask.id, data) : addTask}
+              editingTask={editingTask}
+              onCancel={() => setEditingTask(null)}
+            />
+
+            <TaskFilters
+              filter={filter}
+              onFilterChange={setFilter}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              onClearCompleted={clearCompleted}
+              hasCompletedTasks={taskStats.completed > 0}
+            />
+
+            <TaskList
+              tasks={sortedTasks}
+              onToggle={toggleTask}
+              onDelete={deleteTask}
+              onEdit={setEditingTask}
+            />
+
+            {sortedTasks.length === 0 && (
+              <div className="card" style={{textAlign: 'center', padding: '3rem 2rem'}}>
+                {searchTerm ? (
+                  <>
+                    <p>No tasks found matching "{searchTerm}"</p>
+                    <button onClick={() => setSearchTerm('')} className="btn" style={{marginTop: '1rem'}}>
+                      Clear Search
+                    </button>
+                  </>
+                ) : filter === 'completed' ? (
+                  <p>No completed tasks yet. Complete some tasks to see them here!</p>
+                ) : filter === 'active' ? (
+                  <p>No active tasks. Great job! 🎉</p>
+                ) : (
+                  <p>No tasks yet. Add your first task above to get started!</p>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      // Main App Component
+      const App = () => {
+        const [user, setUser] = useState(null);
+        const [darkMode, setDarkMode] = useState(false);
+        const [isLoading, setIsLoading] = useState(true);
+
+        useEffect(() => {
+          // Check for saved user and dark mode preference
+          const savedUser = localStorage.getItem('taskManagerUser');
+          const savedDarkMode = localStorage.getItem('taskManagerDarkMode');
+          
+          if (savedUser) {
+            setUser(savedUser);
+          }
+          
+          if (savedDarkMode === 'true') {
+            setDarkMode(true);
+          }
+          
+          setIsLoading(false);
+        }, []);
+
+        useEffect(() => {
+          // Apply dark mode class to document
+          if (darkMode) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }, [darkMode]);
+
+        const handleLogin = useCallback((username) => {
+          setUser(username);
+          localStorage.setItem('taskManagerUser', username);
+        }, []);
+
+        const handleLogout = useCallback(() => {
+          setUser(null);
+          localStorage.removeItem('taskManagerUser');
+        }, []);
+
+        const toggleDarkMode = useCallback(() => {
+          const newDarkMode = !darkMode;
+          setDarkMode(newDarkMode);
+          localStorage.setItem('taskManagerDarkMode', newDarkMode.toString());
+        }, [darkMode]);
+
+        if (isLoading) {
+          return (
+            <div className="app loading" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '100vh',
+              gap: '1rem'
+            }}>
+              <div style={{
+                border: '3px solid var(--border-color)',
+                borderTop: '3px solid var(--primary-color)',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+              <p style={{color: 'var(--text-secondary)', fontSize: '1.1rem'}}>
+                Loading Task Manager...
+              </p>
+            </div>
+          );
+        }
+
+        return (
+          <div className={`app ${darkMode ? 'dark' : ''}`}>
+            <header className="app-header">
+              <h1>Task Manager</h1>
+              <div className="header-controls">
+                <button 
+                  className="theme-toggle"
+                  onClick={toggleDarkMode}
+                  title={`Switch to ${darkMode ? 'light' : 'dark'} mode`}
+                >
+                  {darkMode ? '☀️' : '🌙'}
+                </button>
+                {user && (
+                  <div className="user-info">
+                    <span>Welcome, {user}!</span>
+                    <button onClick={handleLogout} className="logout-btn">
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </header>
+            
+            <main className="app-main">
+              {user ? (
+                <TaskManager user={user} />
+              ) : (
+                <Login onLogin={handleLogin} />
+              )}
+            </main>
+          </div>
+        );
+      };
+
+      // Render the app
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
   </body>
 </html>
